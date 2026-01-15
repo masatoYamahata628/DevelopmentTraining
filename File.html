@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Drag & Drop Upload</title>
+  <style>
+    body { font-family: system-ui, sans-serif; margin: 24px; }
+    .dropzone {
+      border: 2px dashed #999;
+      border-radius: 12px;
+      padding: 40px 20px;
+      text-align: center;
+      transition: 0.15s;
+      user-select: none;
+    }
+    .dropzone.is-over {
+      border-color: #333;
+      background: #f5f5f5;
+    }
+    .meta { margin-top: 16px; white-space: pre-wrap; }
+    textarea { width: 100%; height: 240px; margin-top: 12px; }
+  </style>
+</head>
+<body>
+
+  <h1>ファイルをドラッグ＆ドロップ</h1>
+
+  <div id="dropzone" class="dropzone">
+    ここにファイルをドロップ<br>
+    （またはクリックして選択）
+    <input id="fileInput" type="file" hidden />
+  </div>
+
+  <div id="meta" class="meta"></div>
+  <textarea id="preview" placeholder="テキストファイルなら内容をプレビューします"></textarea>
+
+  <script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const meta = document.getElementById('meta');
+    const preview = document.getElementById('preview');
+
+    // クリックでファイル選択もできるように
+    dropzone.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', () => {
+      if (fileInput.files && fileInput.files[0]) handleFiles(fileInput.files);
+    });
+
+    // ブラウザ既定動作（開く等）を止める
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+      dropzone.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+      });
+    });
+
+    dropzone.addEventListener('dragenter', () => dropzone.classList.add('is-over'));
+    dropzone.addEventListener('dragover',  () => dropzone.classList.add('is-over'));
+    dropzone.addEventListener('dragleave', () => dropzone.classList.remove('is-over'));
+    dropzone.addEventListener('drop', (e) => {
+      dropzone.classList.remove('is-over');
+      const files = e.dataTransfer.files;
+      if (files && files.length > 0) handleFiles(files);
+    });
+
+    function handleFiles(files) {
+      const f = files[0]; // 例として先頭1件だけ
+      meta.textContent =
+        `name: ${f.name}\n` +
+        `type: ${f.type || '(unknown)'}\n` +
+        `size: ${f.size} bytes\n` +
+        `lastModified: ${new Date(f.lastModified).toLocaleString()}`;
+
+      // テキストとして読めるものはプレビュー（HTML/CSV/TXT/JSONなど）
+      const reader = new FileReader();
+      reader.onload = () => {
+        preview.value = String(reader.result ?? '');
+      };
+      reader.onerror = () => {
+        preview.value = '読み込みに失敗しました';
+      };
+
+      // バイナリっぽいものは読まないなど制御したければここで判定
+      reader.readAsText(f, 'utf-8');
+    }
+  </script>
+
+</body>
+</html>
