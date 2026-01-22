@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+  <h1>Excelアップロード</h1>
+
+  <form th:action="@{/upload}" method="post" enctype="multipart/form-data">
+    <input type="file" name="file" accept=".xlsx,.xls" required />
+    <button type="submit">送信</button>
+  </form>
+
+  <div th:if="${message}">
+    <p th:text="${message}"></p>
+  </div>
+
+  <div th:if="${errors}">
+    <h3>エラー</h3>
+    <ul>
+      <li th:each="e : ${errors}" th:text="${e}"></li>
+    </ul>
+  </div>
+</body>
+</html>
